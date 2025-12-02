@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locust Stress Test Dashboard - Context Handling Robot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-card .label {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .endpoint-list {
+            list-style: none;
+        }
+
+        .endpoint-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .endpoint-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .endpoint-item p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .info-box strong {
+            color: #2196F3;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Locust Stress Test Dashboard</h1>
+            <p>Context Handling Robot API Testing</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Target Server</h3>
+                <div class="value" style="font-size: 1.2em;">103.253.20.30:30020</div>
+                <div class="label">API Endpoint</div>
+            </div>
+            <div class="stat-card">
+                <h3>Test Endpoints</h3>
+                <div class="value">2</div>
+                <div class="label">APIs được test</div>
+            </div>
+            <div class="stat-card">
+                <h3>Web UI Port</h3>
+                <div class="value">8089</div>
+                <div class="label">Default port</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 API Endpoints được Test</h2>
+            <ul class="endpoint-list">
+                <li class="endpoint-item">
+                    <h4>POST /v1/conversations/end</h4>
+                    <p>Kết thúc một conversation với đầy đủ conversation logs</p>
+                </li>
+                <li class="endpoint-item">
+                    <h4>POST /v1/activities/suggest</h4>
+                    <p>Lấy gợi ý activities cho user dựa trên user_id</p>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>🎯 Cách Sử Dụng</h2>
+            
+            <div class="info-box">
+                <strong>Bước 1:</strong> Chạy Locust với Web UI<br>
+                <code style="background: #f0f0f0; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-top: 10px;">
+                    .\run_ui.ps1
+                </code>
+            </div>
+
+            <div class="info-box">
+                <strong>Bước 2:</strong> Mở browser tại <strong>http://localhost:8089</strong>
+            </div>
+
+            <div class="info-box">
+                <strong>Bước 3:</strong> Nhập số lượng users và spawn rate, sau đó click "Start swarming"
+            </div>
+
+            <div class="info-box">
+                <strong>Bước 4:</strong> Xem kết quả real-time trên dashboard:
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Total Requests</li>
+                    <li>Requests per second (RPS)</li>
+                    <li>Response times (min, max, median, p95, p99)</li>
+                    <li>Number of failures</li>
+                    <li>Response time distribution</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ Quick Actions</h2>
+            <div class="button-group">
+                <a href="http://localhost:8089" class="btn btn-primary" target="_blank">
+                    🖥️ Mở Locust Web UI
+                </a>
+                <button class="btn btn-secondary" onclick="copyCommand('run_ui')">
+                    📋 Copy Run Command
+                </button>
+                <button class="btn btn-secondary" onclick="copyCommand('headless')">
+                    📋 Copy Headless Command
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Made with ❤️ for Context Handling Robot Stress Testing</p>
+        </div>
+    </div>
+
+    <script>
+        function copyCommand(type) {
+            let command = '';
+            if (type === 'run_ui') {
+                command = 'cd 3_ContextHandling_Robot/src\n.\run_ui.ps1';
+            } else if (type === 'headless') {
+                command = 'cd 3_ContextHandling_Robot/src\n.\run_ui_headless.ps1 -Users 10 -SpawnRate 2 -Time 60s';
+            }
+            
+            navigator.clipboard.writeText(command).then(() => {
+                alert('Đã copy command vào clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+    </script>
+</body>
+</html>
+
