@@ -76,8 +76,6 @@ locust -f locustfile.py --host=http://103.253.20.30:30000 --headless -u 50 -r 5 
 
 ---
 
-
-
 Đúng là ta đang test **2 API**:
 
 1. `POST /robot-ai-workflow/api/v1/bot/initConversation`
@@ -95,3 +93,59 @@ Nghĩa là:
 - Không phải “mỗi API call đều init”.
 - Chu trình chuẩn: **init** (1 lần) → **nhiều lần webhook**, giữ context.
 - Chỉ khi nào conversation kết thúc hoặc lỗi thì user mới init lại.
+
+---
+
+# Bộ test stress Test
+
+### Trả lời ngắn gọn
+
+**Không bắt buộc**, tuỳ mục tiêu test:
+
+---
+
+### 1. Khi **không cần** câu real (trường hợp hiện tại)
+
+Giữ như đang làm (câu fix sẵn + random) là đủ nếu mục tiêu là:
+
+- **Đo tải hệ thống**: RPS, CPU, DB connection, latency, error rate.
+- **Không quan trọng nội dung ngôn ngữ**, chỉ cần:
+  - Payload đúng format (`conversation_id`, `message` là string).
+  - Độ dài message “vừa phải”.
+
+Ưu điểm:
+
+- Đơn giản, dễ control.
+- Ít rủi ro tạo ra case lạ làm lệch kết quả.
+- Dễ tái lập (reproduce) test.
+
+Với kiểu test “stress infra + flow API”, cách hiện tại **hoàn toàn chấp nhận được**.
+
+---
+
+### 2. Khi **nên** dùng câu user real
+
+Nên dựng bộ câu real (hoặc lấy mẫu từ logs) nếu bạn muốn:
+
+- Đánh giá **quality** / behavior của bot dưới tải (không chỉ performance).
+- Muốn xem:
+  - Tỉ lệ trả về `status=END` sớm do user nói sai format.
+  - Bot có bị “lạc đề” với câu phức tạp không.
+  - Các path hiếm trong workflow có được cover không.
+
+Lúc đó có thể:
+
+- Lấy 100–500 câu thực tế từ hệ thống / logs.
+- Đưa vào `.env` hoặc 1 file JSON/CSV, rồi load làm `MESSAGE_POOL` để random.
+
+---
+
+### 3. Gợi ý thực tế cho bài này
+
+- **Bước 1** (performance/stress): tiếp tục dùng **câu synthethic như hiện tại** để:
+  - Khoanh vùng bottleneck (DB, max_connections, v.v.).
+  - Xác định ngưỡng users (100/200/300…).
+- **Bước 2** (behavior/quality – nếu cần): thêm 1 profile Locust khác hoặc 1 `MESSAGE_POOL` khác chứa **câu real** để:
+  - Xem bot hành xử ra sao dưới tải tương tự.
+
+Nếu mục tiêu của bạn chủ yếu là **“chịu được bao nhiêu users mà không gãy”** thì **chưa cần** dựng câu real; khi bắt đầu quan tâm đến **chất lượng phản hồi dưới tải**, lúc đó hãy đầu tư thêm bộ câu user thực.

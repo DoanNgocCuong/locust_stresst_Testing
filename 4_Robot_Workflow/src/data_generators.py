@@ -12,7 +12,9 @@ from dataclasses import dataclass
 from typing import Dict, Any, Optional, Sequence
 
 
-def generate_conversation_id(prefix: str = "conv") -> str:
+def generate_conversation_id(
+    prefix: str = "conv_doanngoccuong_locustTest"
+) -> str:
     """
     Sinh conversation_id duy nhất dựa trên timestamp và random suffix.
     """

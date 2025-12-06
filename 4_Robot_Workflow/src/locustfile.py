@@ -7,6 +7,7 @@ Mỗi user sẽ giữ conversation_id riêng và gửi messages ngẫu nhiên.
 """
 
 import json
+import random
 from locust import HttpUser, task, between
 
 from config import Config
@@ -25,8 +26,10 @@ class RobotWorkflowUser(HttpUser):
     wait_time = between(Config.WAIT_TIME_MIN, Config.WAIT_TIME_MAX)
 
     def on_start(self):
+        # Mỗi user chọn 1 bot_id ngẫu nhiên từ danh sách được cấu hình
+        self.bot_id = random.choice(Config.BOT_IDS)
         self.payload_factory = PayloadFactory(
-            bot_id=Config.DEFAULT_BOT_ID, messages=Config.MESSAGE_POOL
+            bot_id=self.bot_id, messages=Config.MESSAGE_POOL
         )
         self.current_conversation_id = None
         self._init_conversation(first_init=True)

@@ -51,6 +51,24 @@ class Config:
     )
 
     DEFAULT_BOT_ID = _get_int("ROBOT_WORKFLOW_BOT_ID", 3)
+
+    # Cho phép cấu hình nhiều bot_id, ví dụ: ROBOT_WORKFLOW_BOT_IDS=3,4,5
+    RAW_BOT_IDS = os.getenv("ROBOT_WORKFLOW_BOT_IDS")
+    if RAW_BOT_IDS:
+        BOT_IDS = []
+        for part in RAW_BOT_IDS.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                BOT_IDS.append(int(part))
+            except ValueError:
+                continue
+        if not BOT_IDS:
+            BOT_IDS = [DEFAULT_BOT_ID]
+    else:
+        BOT_IDS = [DEFAULT_BOT_ID]
+
     DEFAULT_INIT_MESSAGE = os.getenv("ROBOT_WORKFLOW_INIT_MESSAGE", "sẵn sàng")
 
     WAIT_TIME_MIN = _get_float("ROBOT_WORKFLOW_WAIT_MIN", 1.0)
