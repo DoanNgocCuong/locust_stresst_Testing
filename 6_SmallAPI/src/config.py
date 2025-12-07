@@ -105,8 +105,8 @@ class Config:
     )
 
     # Wait time giữa các requests (giây)
-    WAIT_TIME_MIN = _get_float("QWEN_API_WAIT_MIN", 0.01)
-    WAIT_TIME_MAX = _get_float("QWEN_API_WAIT_MAX", 0.1)
+    WAIT_TIME_MIN = _get_float("QWEN_API_WAIT_MIN", 1)
+    WAIT_TIME_MAX = _get_float("QWEN_API_WAIT_MAX", 3)
 
     # Headers mặc định
     DEFAULT_HEADERS = {
