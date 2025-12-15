@@ -147,6 +147,8 @@ class ChatCompletionPayload:
     repetition_penalty: float
     stream: bool
     enable_thinking: bool
+    max_tokens: Optional[int] = None
+    stop_tokens: Optional[list[str]] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Chuyển đổi payload thành dictionary."""
@@ -162,6 +164,11 @@ class ChatCompletionPayload:
         payload["chat_template_kwargs"] = {
             "enable_thinking": self.enable_thinking
         }
+
+        if self.max_tokens is not None:
+            payload["max_tokens"] = self.max_tokens
+        if self.stop_tokens:
+            payload["stop"] = self.stop_tokens
         
         return payload
 
@@ -177,6 +184,8 @@ class ChatCompletionPayloadFactory:
         repetition_penalty: float = None,
         stream: bool = None,
         enable_thinking: bool = None,
+        max_tokens: Optional[int] = None,
+        stop_tokens: Optional[Sequence[str]] = None,
         questions: Optional[Sequence[str]] = None,
         answers: Optional[Sequence[str]] = None,
         responses: Optional[Sequence[str]] = None,
@@ -211,6 +220,8 @@ class ChatCompletionPayloadFactory:
         self.enable_thinking = (
             enable_thinking if enable_thinking is not None else Config.ENABLE_THINKING
         )
+        self.max_tokens = max_tokens if max_tokens is not None else Config.MAX_TOKENS
+        self.stop_tokens = list(stop_tokens) if stop_tokens is not None else Config.STOP_TOKENS
 
         self.excel_loader = excel_loader
         self.use_excel_data = use_excel_data and excel_loader is not None
@@ -272,5 +283,7 @@ class ChatCompletionPayloadFactory:
             repetition_penalty=self.repetition_penalty,
             stream=self.stream,
             enable_thinking=self.enable_thinking,
+            max_tokens=self.max_tokens,
+            stop_tokens=self.stop_tokens,
         )
 

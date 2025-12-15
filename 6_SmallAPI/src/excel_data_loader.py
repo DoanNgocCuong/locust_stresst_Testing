@@ -14,7 +14,7 @@ import threading
 class ExcelDataLoader:
     """
     Class để load và quản lý dữ liệu từ file Excel.
-    Hỗ trợ đọc cột new_data và cung cấp dữ liệu ngẫu nhiên cho stress test.
+    Ưu tiên cột 'user_input'; fallback 'new_data' để giữ tương thích cũ.
     """
 
     def __init__(self, excel_path: str):
@@ -29,39 +29,49 @@ class ExcelDataLoader:
             raise FileNotFoundError(f"Không tìm thấy file: {excel_path}")
         
         self._df: Optional[pd.DataFrame] = None
-        self._new_data_list: List[str] = []
+        self._data_list: List[str] = []
+        self._data_column: str = ""
         self._load_data()
 
     def _load_data(self):
         """Load dữ liệu từ file Excel."""
         try:
             self._df = pd.read_excel(self.excel_path)
-            
-            # Kiểm tra cột new_data có tồn tại không
-            if 'new_data' not in self._df.columns:
+
+            # Xác định cột dùng để lấy nội dung
+            if "user_input" in self._df.columns:
+                self._data_column = "user_input"
+            elif "new_data" in self._df.columns:
+                self._data_column = "new_data"
+            else:
                 raise ValueError(
-                    f"File Excel không có cột 'new_data'. "
+                    "File Excel thiếu cột 'user_input' (ưu tiên) hoặc 'new_data' (fallback). "
                     f"Các cột hiện có: {list(self._df.columns)}"
                 )
-            
+
             # Lọc các dòng có dữ liệu hợp lệ
-            self._new_data_list = (
-                self._df['new_data']
+            self._data_list = (
+                self._df[self._data_column]
                 .dropna()
                 .astype(str)
                 .tolist()
             )
             
             # Lọc các chuỗi rỗng
-            self._new_data_list = [
-                data for data in self._new_data_list 
+            self._data_list = [
+                data for data in self._data_list 
                 if data.strip() != '' and data.strip().lower() != 'nan'
             ]
             
-            if not self._new_data_list:
-                raise ValueError("Không tìm thấy dữ liệu hợp lệ trong cột 'new_data'")
+            if not self._data_list:
+                raise ValueError(
+                    f"Không tìm thấy dữ liệu hợp lệ trong cột '{self._data_column}'"
+                )
             
-            print(f"✅ Đã load {len(self._new_data_list)} dòng dữ liệu từ {self.excel_path.name}")
+            print(
+                f"✅ Đã load {len(self._data_list)} dòng dữ liệu từ cột "
+                f"'{self._data_column}' trong {self.excel_path.name}"
+            )
             
         except Exception as e:
             raise RuntimeError(f"Lỗi khi đọc file Excel: {e}")
@@ -93,11 +103,11 @@ class ExcelDataLoader:
         Returns:
             Chuỗi nội dung từ cột new_data (có thể đã được truncate nếu quá dài)
         """
-        if not self._new_data_list:
+        if not self._data_list:
             raise RuntimeError("Không có dữ liệu để lấy. Vui lòng kiểm tra file Excel.")
         
         # Lấy dữ liệu ngẫu nhiên (KHÔNG bỏ đi dữ liệu nào)
-        data = random.choice(self._new_data_list)
+        data = random.choice(self._data_list)
         
         # Nếu dữ liệu quá dài, truncate (cắt ngắn) thay vì bỏ đi
         max_chars = max_tokens * 4  # ~4 ký tự = 1 token
@@ -124,7 +134,7 @@ class ExcelDataLoader:
         Returns:
             Danh sách tất cả giá trị trong cột new_data
         """
-        return self._new_data_list.copy()
+        return self._data_list.copy()
 
     def get_data_count(self) -> int:
         """
@@ -133,7 +143,7 @@ class ExcelDataLoader:
         Returns:
             Số lượng dòng dữ liệu
         """
-        return len(self._new_data_list)
+        return len(self._data_list)
 
 
 # Shared loader instance - được load 1 lần duy nhất và chia sẻ cho tất cả users

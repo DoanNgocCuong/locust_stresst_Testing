@@ -44,12 +44,23 @@ def _get_bool(env_name: str, default: bool) -> bool:
     return value.lower() in ("true", "1", "yes", "on")
 
 
+def _get_list(env_name: str, default: list[str]) -> list[str]:
+    """
+    Helper để đọc list từ env, tách bằng dấu phẩy.
+    Trả về default nếu không tồn tại hoặc chuỗi rỗng.
+    """
+    value = os.getenv(env_name)
+    if value is None or value.strip() == "":
+        return default
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
 class Config:
     """Chứa các thông số cấu hình chính cho bài test."""
 
     # Base URL của API server
     BASE_URL = os.getenv(
-        "QWEN_API_BASE_URL", "http://103.253.20.30:7862"
+        "QWEN_API_BASE_URL", "http://103.253.20.30:30030"
     )
 
     # API Endpoint
@@ -61,47 +72,31 @@ class Config:
     # Model name
     MODEL_NAME = os.getenv(
         "QWEN_API_MODEL_NAME",
-        "Qwen/Qwen3-0.6B",
+        "Qwen/Qwen2.5-1.5B-Instruct-AWQ",
     )
+
+    # Giới hạn token cho câu trả lời
+    MAX_TOKENS = _get_int("QWEN_API_MAX_TOKENS", 5)
+
+    # Stop tokens cho API
+    STOP_TOKENS = _get_list("QWEN_API_STOP_TOKENS", ["\n", " ", ".", ","])
 
     # API Parameters
     TEMPERATURE = _get_float("QWEN_API_TEMPERATURE", 0.0)
-    REPETITION_PENALTY = _get_float("QWEN_API_REPETITION_PENALTY", 1.1)
+    REPETITION_PENALTY = _get_float("QWEN_API_REPETITION_PENALTY", 1.0)
     STREAM = _get_bool("QWEN_API_STREAM", False)
     ENABLE_THINKING = _get_bool("QWEN_API_ENABLE_THINKING", False)
 
     # System prompt (có thể override từ env)
     SYSTEM_PROMPT = os.getenv(
         "QWEN_API_SYSTEM_PROMPT",
-        "You are now intention detection. Given user's input, detect the suitable emotion and the need of celebrate for it.\n"
-        "User input in format\n"
-        "previous Question: string\n"
-        "previous Answer: string\n"
-        "Response to check: string to check\n\n"
-        "You will extract the 'Response to check' and check:\n\n"
-        "1. For emotion, pick from the list below:\n"
-        "- happy, happy_2: when intention about happiness\n"
-        "- calm: when intentionis to comfort\n"
-        "- excited, excited_2: when expressing the exciting emotion\n"
-        "- playful,playful_2,playful_3: intention about playing some fun activity\n"
-        "- no_problem: intention when telling something is fine\n"
-        "- encouraging,encouraging_2: intention when tell to try to do something\n"
-        "- curious: intention when show curiousity\n"
-        "- surprised: when being shocked or surprised\n"
-        "- proud,proud_2: when showing proud\n"
-        "- thats_right, thats_right_2: when telling something is correct\n"
-        "- sad: when sad\n"
-        "- angry: showing anger\n"
-        "- worry: when show worriness\n"
-        "- afraid: when feel scared\n"
-        "- noisy: When intention about can't hear properly\n"
-        "- thinking: intention about thinking\n\n"
-        "2. For learn_score, if related to english learning\n"
-        "- true: if question is about english learning, repeating something, and answer correctly\n"
-        "- false: for other case include positive and negative\n\n\n"
-        "return in single line json format.\n"
-        '{"emotion":"<emotion name>","learn_score":true/flase}\n'
-        "/no_think"
+        "You are an emotion classifier for Pika Robot's responses.\n"
+        "Task:\n"
+        "* Read the conversation snippet.\n"
+        "* Focus ONLY on \"Now Pika Robot's Response need check\" and identify the MAIN emotion expressed in that turn.\n\n"
+        "Emotion rules:\n"
+        "Choose exactly ONE emotion from this list and output only that word:\n"
+        "happy, calm, excited, playful, no_problem, encouraging, curious, surprised, proud, thats_right, sad, angry, worry, afraid, noisy, thinking"
     )
 
     # Wait time giữa các requests (giây)
